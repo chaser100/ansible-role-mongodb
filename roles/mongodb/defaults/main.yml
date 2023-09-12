@@ -1,0 +1,54 @@
+---
+# defaults file for mongodb
+deb_packages:
+  - mongodb-org-server_5.0.5_amd64.deb
+  - mongodb-org-shell_5.0.5_amd64.deb
+  - mongodb-org-mongos_5.0.5_amd64.deb
+  - mongodb-org-database-tools-extra_5.0.5_amd64.deb
+  - mongodb-org-database_5.0.5_amd64.deb
+  - mongodb-database-tools_100.5.1_amd64.deb
+  - mongodb-org-tools_5.0.5_amd64.deb
+  - mongodb-mongosh_1.1.9_amd64.deb
+  - mongodb-org_5.0.5_amd64.deb
+  - python-pip-whl_20.0.2-5ubuntu1.9_all.deb
+  - python3-pip_20.0.2-5ubuntu1.9_all.deb
+
+pips:
+  - pymongo-3.9.0.tar.gz
+
+checklist:
+  - mongodb-database-tools
+  - mongodb-mongosh
+  - mongodb-org-database-tools-extra
+  - mongodb-org-database
+  - mongodb-org-mongos
+  - mongodb-org-server
+  - mongodb-org-shell
+  - mongodb-org-tools
+  - mongodb-org
+
+adminDatabase: []
+#  password: QwertyAbc
+
+ansibleUser: []
+#  rootUser: cloud
+#  password: QwertyAbc
+
+mongoDatabase: []
+#  - database: notifications
+#    user: notifications_user
+#    password: QwertyAbc
+#    role: userAdmin
+#  - database: notifications_mlspace
+#    user: notifications_mlspace_user
+#    password: QwertyAbc
+#    role: userAdmin
+
+mongodb_replicaset: enabled
+
+replication_members: []
+#  - 192.168.2.155:27017
+#  - 192.168.2.156:27017
+#  - 192.168.2.157:27017
+
+replicaSetName: []

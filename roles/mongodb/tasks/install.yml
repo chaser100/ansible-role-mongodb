@@ -1,0 +1,85 @@
+---
+- name: Install MongoDB deb packages
+  tags: install
+  when: check_result.changed
+  block:
+    - name: update cache
+      ansible.builtin.apt:
+        update_cache: yes
+
+    - name: install mongodb
+      ansible.builtin.apt:
+        name: '{{ item }}'
+        state: latest
+      with_items:
+        - "{{ checklist }}"
+
+    - name: Install pip packages
+      ansible.builtin.pip:
+        name: pymongo==3.9.0
+        state: latest
+
+    - name: Starting service mongod
+      ansible.builtin.service:
+        name: mongod
+        state: restarted
+
+    - name: Create Ansible User for managing MongoDB
+      community.mongodb.mongodb_user:
+        database: admin
+        name: "{{ ansibleUser.rootUser }}"
+        password: "{{ ansibleUser.password }}"
+        roles: root
+        state: present
+
+  rescue:
+    - name: Copy deb packages to temp directory
+      ansible.builtin.copy:
+        src: "{{ item }}"
+        dest: /tmp/{{ item }}
+      with_items:
+        - "{{ deb_packages }}"
+      notify:
+        - Deleting temporary files
+
+    - name: Install a .deb packages
+      ansible.builtin.apt:
+        deb: /tmp/{{ item }}
+      with_items:
+        - "{{ deb_packages }}"
+      notify:
+        - Start and enable service mongod
+
+    - name: Copy pip packages to temp directory
+      ansible.builtin.copy:
+        src: "{{ item }}"
+        dest: /tmp/{{ item }}
+      with_items:
+        - "{{ pips }}"
+
+    - name: Install pip package from the extracted directory
+      ansible.builtin.pip:
+        name: '/tmp/{{ item }}'
+        state: present
+      with_items:
+        - "{{ pips }}"
+
+    - name: Template init MongoDB configuration
+      ansible.builtin.template:
+        src: "_mongod.conf.j2"
+        dest: "/etc/mongod.conf"
+        owner: root
+        mode: "0644"
+
+    - name: Starting service mongod
+      ansible.builtin.service:
+        name: mongod
+        state: restarted
+
+    - name: Create Ansible User for managing MongoDB
+      community.mongodb.mongodb_user:
+        database: admin
+        name: "{{ ansibleUser.rootUser }}"
+        password: "{{ ansibleUser.password }}"
+        roles: root
+        state: present

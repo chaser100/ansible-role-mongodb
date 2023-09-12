@@ -1,0 +1,67 @@
+---
+- name: Copy replicaset key auth
+  ansible.builtin.copy:
+    src: mongo.key
+    dest: /etc/mongo.key
+    owner: mongodb
+    group: mongodb
+    mode: '0400'
+
+- name: Template configuration Replica options
+  ansible.builtin.template:
+    src: "mongod.conf.j2"
+    dest: "/etc/mongod.conf"
+    owner: root
+    mode: "0644"
+
+- name: Restart MongoDB
+  ansible.builtin.service:
+    name: mongod
+    state: restarted
+
+- name: Configure MongoDB replica set {{ replicaSetName }}
+  when: inventory_hostname == "mongodb01"
+  community.mongodb.mongodb_replicaset:
+    login_user: "{{ ansibleUser.rootUser }}"
+    login_password: "{{ ansibleUser.password }}"
+    replica_set: "{{ replicaSetName }}"
+    members:
+      - "{{ replication_members[0] }}"
+      - "{{ replication_members[1] }}"
+      - "{{ replication_members[2] }}"
+
+- name: Wait for the replicaset {{ replicaSetName }} to stabilise
+  when: inventory_hostname == "mongodb01"
+  community.mongodb.mongodb_status:
+    login_user: "{{ ansibleUser.rootUser }}"
+    login_password: "{{ ansibleUser.password }}"
+    replica_set: "{{ replicaSetName }}"
+    poll: 5
+    interval: 10
+
+- name: Create Admin database user with name Admin
+  community.mongodb.mongodb_user:
+    login_user: "{{ ansibleUser.rootUser }}"
+    login_password: "{{ ansibleUser.password }}"
+    replica_set: "{{ replicaSetName }}"
+    database: admin
+    name: admin
+    password: "{{ adminDatabase.password }}"
+    roles: readWriteAnyDatabase
+    state: present
+  tags: configure
+
+- name: Create Users databases
+  community.mongodb.mongodb_user:
+    login_user: "{{ ansibleUser.rootUser }}"
+    login_password: "{{ ansibleUser.password }}"
+    login_host: localhost
+    database: "{{ item.database }}"
+    replica_set: "{{ replicaSetName }}"
+    name: "{{ item.user }}"
+    password: "{{ item.password }}"
+    roles: "{{ item.role }}"
+    state: present
+  tags: configure
+  loop: "{{ mongoDatabase }}"
+  when: mongoDatabase is defined

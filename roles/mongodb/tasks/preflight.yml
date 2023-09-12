@@ -1,0 +1,34 @@
+---
+- name: Gathering information about installed packages
+  ansible.builtin.package_facts:
+    manager: auto
+  tags: install
+
+- name: Checking if MongoDB packages is installed
+  debug:
+    msg: "MongoDB packages '{{ item }}' is not installed"
+  with_items:
+    - "{{ checklist }}"
+  when: "'{{ item }}' not in ansible_facts.packages"
+  changed_when: true
+  register: check_result
+  tags: install
+
+- name: Install MongoDB
+  include_tasks: install.yml
+  when: check_result.changed
+  tags: install
+
+- name: Configure MongoDB
+  include_tasks: standalone.yml
+  tags:
+    - standalone
+    - standalone_users
+  when: mongodb_replicaset == 'disabled'
+
+- name: Configure MongoDB Replication
+  include_tasks: replication.yml
+  tags:
+    - replicaset
+    - replicaset_users
+  when: mongodb_replicaset == 'enabled'

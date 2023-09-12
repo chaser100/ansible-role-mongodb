@@ -1,0 +1,12 @@
+---
+# tasks file for mongodb
+- name: Run Preflight tasks
+  include_tasks: preflight.yml
+  tags:
+    - install
+    - configure
+    - standalone
+    - standalone_users
+    - replicaset
+    - replicaset_users
+...

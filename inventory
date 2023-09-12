@@ -1,0 +1,4 @@
+[mongo]
+mongodb01 ansible_host=192.168.2.155
+mongodb02 ansible_host=192.168.2.156
+mongodb03 ansible_host=192.168.2.157

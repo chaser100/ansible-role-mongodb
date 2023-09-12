@@ -1,0 +1,14 @@
+adminDatabase:
+  password: admin
+
+ansibleUser:
+  rootUser: admin
+  password: QwertyAbc
+
+mongoDatabase: []
+
+mongodb_replicaset: disabled
+
+replication_members: []
+
+replicaSetName: rs0

@@ -1,0 +1,19 @@
+---
+# handlers file for mongodb
+- name: Start and enable service mongod
+  ansible.builtin.service:
+    name: mongod
+    state: started
+    enabled: true
+
+- name: Deleting temporary files
+  ansible.builtin.file:
+    path: /tmp/{{ item }}
+    state: absent
+  with_items:
+    - "{{ deb_packages }}"
+
+- name: Restart MongoDB
+  ansible.builtin.service:
+    name: mongod
+    state: restarted

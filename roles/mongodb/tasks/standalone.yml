@@ -1,0 +1,35 @@
+---
+- name: configure databases and users non-replication
+  when: mongodb_replicaset == 'disabled'
+  block:
+    - name: Template configuration options
+      ansible.builtin.template:
+        src: "mongod.conf.j2"
+        dest: "/etc/mongod.conf"
+        owner: root
+        mode: "0644"
+      notify: Restart MongoDB
+
+    - name: Create Admin database user with name Admin
+      community.mongodb.mongodb_user:
+        login_user: "{{ ansibleUser.rootUser }}"
+        login_password: "{{ ansibleUser.password }}"
+        login_host: localhost
+        database: admin
+        name: admin
+        password: "{{ adminDatabase.password }}"
+        roles: readWriteAnyDatabase
+        state: present
+
+    - name: Create Users databases
+      community.mongodb.mongodb_user:
+        login_user: "{{ ansibleUser.rootUser }}"
+        login_password: "{{ ansibleUser.password }}"
+        login_host: localhost
+        database: "{{ item.database }}"
+        name: "{{ item.user }}"
+        password: "{{ item.password }}"
+        roles: "{{ item.role }}"
+        state: present
+      loop: "{{ mongoDatabase }}"
+      when: mongoDatabase is defined
